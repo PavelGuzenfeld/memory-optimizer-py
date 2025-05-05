@@ -69,3 +69,38 @@ def read_large_file(filename: str) -> Generator[str, None, None]:
         for line in f:
             yield line.rstrip('\n').upper()
 ```
+
+## Development testing
+## How to Use:
+
+### Quick Test (without installation):
+```bash
+# Using the test runner
+python run_tests.py
+
+# Using the quick test script
+chmod +x quick_test.sh
+./quick_test.sh
+
+# Using pytest directly
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+pytest tests/ -v
+```
+
+### Development Workflow:
+```bash
+# Create virtual environment and install dev dependencies
+make dev-install
+
+# Run all tests
+make test
+
+# Run tests with coverage
+make coverage
+
+# Run all checks (lint, type-check, tests)
+make check
+
+# Format code
+make format
+```
