@@ -1,6 +1,5 @@
 # tests/fixtures/sample_code.py
 
-```python
 """
 Sample code snippets for testing.
 """
@@ -53,4 +52,56 @@ def process_file_lines(filename):
     with open(filename, 'r') as f:
         lines = f.readlines()
     return [line.strip().upper() for line in lines]
+'''
+
+MULTIPLE_LIST_COMPREHENSIONS = '''
+def process_data(data):
+    filtered = [x for x in data if x > 0]
+    squared = [x**2 for x in filtered]
+    return [x for x in squared if x < 1000]
+'''
+
+MIXED_OPTIMIZATION_OPPORTUNITIES = '''
+class DataProcessor:
+    def __init__(self, name):
+        self.name = name
+        self.cache = {}
+        
+    def process_file(self, filename):
+        with open(filename, 'r') as f:
+            data = f.read()
+        lines = data.splitlines()
+        return [line.upper() for line in lines if line.strip()]
+        
+    def process_numbers(self, numbers):
+        return [n * 2 for n in numbers if n > 0]
+'''
+
+ALREADY_OPTIMIZED_CODE = '''
+from typing import Generator
+
+class OptimizedClass:
+    __slots__ = ['name', 'value']
+    
+    def __init__(self, name: str, value: int):
+        self.name = name
+        self.value = value
+
+def optimized_file_reader(filename: str) -> Generator[str, None, None]:
+    with open(filename, 'r') as f:
+        for line in f:
+            yield line.strip()
+'''
+
+SYNTAX_ERROR_CODE = '''
+def invalid_function(
+    print("This won't compile"
+'''
+
+SIMPLE_FUNCTION_CODE = '''
+def add(x, y):
+    return x + y
+
+def multiply(x, y):
+    return x * y
 '''
