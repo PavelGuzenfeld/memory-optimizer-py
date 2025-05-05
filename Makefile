@@ -1,6 +1,3 @@
-# Makefile
-
-```makefile
 # Makefile for memory_optimizer
 
 .PHONY: test clean install dev-install lint type-check coverage format docs
@@ -93,4 +90,3 @@ help:
 	@echo "  make clean        - Clean up generated files"
 	@echo "  make dist         - Create distribution packages"
 	@echo "  make upload       - Upload to PyPI"
-```
