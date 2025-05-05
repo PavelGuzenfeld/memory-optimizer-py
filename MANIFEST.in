@@ -1,0 +1,19 @@
+include README.md
+include LICENSE
+include requirements.txt
+include requirements-dev.txt
+include pytest.ini
+include tox.ini
+include Makefile
+include MANIFEST.in
+
+recursive-include memory_optimizer *.py
+recursive-include tests *.py
+recursive-include tests/fixtures *.py *.txt
+
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude __pycache__
+global-exclude *.bak
+global-exclude *.swp
+global-exclude *~
