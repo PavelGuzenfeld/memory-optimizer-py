@@ -39,7 +39,7 @@ class MemoryOptimizer:
             if not list_comp_found:
                 # No list comprehensions found, return unchanged
                 return {
-                    'success': True,  # Return success=True even if no changes
+                    'success': False,  # Fixed: Return success=False when no changes
                     'optimized_code': code,
                     'changes': []
                 }
@@ -60,7 +60,7 @@ class MemoryOptimizer:
                 }
             
             return {
-                'success': True,  # Return success=True even if no changes
+                'success': False,  # Fixed: Return success=False when no changes
                 'optimized_code': code,
                 'changes': []
             }
@@ -87,7 +87,7 @@ class MemoryOptimizer:
             if not class_found:
                 # No classes found, return unchanged
                 return {
-                    'success': True,  # Return success=True even if no changes
+                    'success': False,  # Fixed: Return success=False when no changes
                     'optimized_code': code,
                     'changes': []
                 }
@@ -124,7 +124,7 @@ class MemoryOptimizer:
             # If no classes need slots, return unchanged
             if not class_info:
                 return {
-                    'success': True,  # Return success=True even if no changes
+                    'success': False,  # Fixed: Return success=False when no changes
                     'optimized_code': code,
                     'changes': []
                 }
@@ -173,7 +173,7 @@ def read_large_file(filename):
             }
         
         return {
-            'success': True,  # Changed to True for passing the test
+            'success': False,  # Fixed: Return success=False when no changes
             'optimized_code': code,
             'changes': []
         }
@@ -216,7 +216,7 @@ class ObjectPool:
             }
         
         return {
-            'success': True,  # Changed to True for passing the test
+            'success': False,  # Fixed: Return success=False when no changes
             'optimized_code': code,
             'changes': []
         }
