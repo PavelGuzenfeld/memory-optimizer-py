@@ -5,6 +5,7 @@ Tests for the backup functionality.
 import unittest
 import tempfile
 import shutil
+import time
 from pathlib import Path
 
 from memory_optimizer.backup import BackupManager
@@ -54,7 +55,7 @@ class TestBackupManager(unittest.TestCase):
         
         # Create multiple backups
         backup1 = self.backup_manager.create_backup(test_file)
-        import time; time.sleep(0.1)  # Ensure different timestamps
+        time.sleep(0.1)  # Ensure different timestamps
         backup2 = self.backup_manager.create_backup(test_file)
         
         # Find latest backup

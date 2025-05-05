@@ -1,5 +1,4 @@
 # tests/conftest.py
-
 """
 Pytest configuration and fixtures for testing.
 """
@@ -43,14 +42,14 @@ def sample_test_data(temp_dir):
     large_file = temp_dir / "large_file.txt"
     with open(large_file, 'w') as f:
         for i in range(10000):
-            f.write(f"Line {i}\\n")
+            f.write(f"Line {i}\n")
     
     # Create a CSV file
     csv_file = temp_dir / "data.csv"
     with open(csv_file, 'w') as f:
-        f.write("id,value\\n")
+        f.write("id,value\n")
         for i in range(1000):
-            f.write(f"{i},{i * 10}\\n")
+            f.write(f"{i},{i * 10}\n")
     
     return {
         'large_file': large_file,
@@ -106,7 +105,7 @@ class Helper:
     
     # Create data file
     data_file = project_dir / "data.txt"
-    data_file.write_text("line1\\nline2\\nline3\\n")
+    data_file.write_text("line1\nline2\nline3\n")
     
     return project_dir
 
@@ -124,4 +123,3 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "slow: mark test as slow"
     )
-```
