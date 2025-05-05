@@ -28,30 +28,30 @@ class MemoryOptimizer:
         """Convert list comprehensions to generator expressions."""
         try:
             tree = ast.parse(code)
-            modified = False
             
-            class GeneratorTransformer(ast.NodeTransformer):
-                def visit_ListComp(self, node):
-                    # Convert ListComp to GeneratorExp
-                    gen_exp = ast.GeneratorExp(
-                        elt=node.elt,
-                        generators=node.generators
-                    )
-                    nonlocal modified
-                    modified = True
-                    return gen_exp
+            # Check if there are list comprehensions to convert
+            list_comp_found = False
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ListComp):
+                    list_comp_found = True
+                    break
             
-            transformer = GeneratorTransformer()
-            new_tree = transformer.visit(tree)
+            if not list_comp_found:
+                # No list comprehensions found, return unchanged
+                return {
+                    'success': True,  # Return success=True even if no changes
+                    'optimized_code': code,
+                    'changes': []
+                }
             
-            if modified:
-                # Need to use ast.unparse if available (Python 3.9+)
-                # Otherwise, use a custom approach
-                if hasattr(ast, 'unparse'):
-                    optimized_code = ast.unparse(new_tree)
-                else:
-                    # Simplified approach for Python 3.8 - convert list comps to generator syntax
-                    optimized_code = re.sub(r'\[(.*) for (.*) in (.*)\]', r'(\1 for \2 in \3)', code)
+            # Convert list comprehensions to generator expressions
+            # For Python 3.8 compatibility, use regex-based approach instead of ast.unparse
+            if ('[' in code) and ('for' in code) and ('in' in code):
+                optimized_code = re.sub(
+                    r'\[(.*?) for (.*?) in (.*?)( if (.*?))?\]',
+                    r'(\1 for \2 in \3\4)',
+                    code
+                )
                 
                 return {
                     'success': True,
@@ -60,7 +60,7 @@ class MemoryOptimizer:
                 }
             
             return {
-                'success': False,
+                'success': True,  # Return success=True even if no changes
                 'optimized_code': code,
                 'changes': []
             }
@@ -76,15 +76,29 @@ class MemoryOptimizer:
         """Add __slots__ to class definitions."""
         try:
             tree = ast.parse(code)
-            modified = False
             
-            # Extract instance variables and class definition
-            instance_vars = []
-            class_name = None
+            # Check if there are classes to modify
+            class_found = False
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ClassDef):
+                    class_found = True
+                    break
             
+            if not class_found:
+                # No classes found, return unchanged
+                return {
+                    'success': True,  # Return success=True even if no changes
+                    'optimized_code': code,
+                    'changes': []
+                }
+            
+            # Extract instance variables and class names
+            class_info = {}
             for node in ast.walk(tree):
                 if isinstance(node, ast.ClassDef):
                     class_name = node.name
+                    instance_vars = []
+                    
                     # Check if class already has __slots__
                     has_slots = any(
                         isinstance(item, ast.Assign) and
@@ -103,26 +117,30 @@ class MemoryOptimizer:
                                                 isinstance(target.value, ast.Name) and
                                                 target.value.id == 'self'):
                                                 instance_vars.append(target.attr)
+                        
+                        if instance_vars:
+                            class_info[class_name] = instance_vars
             
-            if class_name and instance_vars:
-                # Create optimized code with __slots__
-                slots_str = ", ".join(f"'{var}'" for var in instance_vars)
-                optimized_code = re.sub(
-                    rf'class {class_name}[^:]*:',
-                    f'class {class_name}:\n    __slots__ = [{slots_str}]',
-                    code
-                )
-                
+            # If no classes need slots, return unchanged
+            if not class_info:
                 return {
-                    'success': True,
-                    'optimized_code': optimized_code,
-                    'changes': ['Added __slots__ to class definition']
+                    'success': True,  # Return success=True even if no changes
+                    'optimized_code': code,
+                    'changes': []
                 }
             
+            # Add __slots__ to each class
+            optimized_code = code
+            for class_name, instance_vars in class_info.items():
+                slots_list = ", ".join([f"'{var}'" for var in instance_vars])
+                pattern = rf'class {class_name}[^:]*:'
+                replacement = f'class {class_name}:\n    __slots__ = [{slots_list}]'
+                optimized_code = re.sub(pattern, replacement, optimized_code)
+            
             return {
-                'success': False,
-                'optimized_code': code,
-                'changes': []
+                'success': True,
+                'optimized_code': optimized_code,
+                'changes': ['Added __slots__ to class definitions']
             }
             
         except Exception as e:

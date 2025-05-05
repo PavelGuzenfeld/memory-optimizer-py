@@ -28,14 +28,20 @@ def format_report(results: List[Dict[str, Any]]) -> str:
     total_files = len(results)
     optimized_files = sum(1 for r in results if r.get('changes_made', False))
     failed_files = sum(1 for r in results if 'error' in r)
-    total_memory_saved = sum(r.get('memory_saved', 0) for r in results)
+    
+    # Handle division by zero case
+    if total_files > 0:
+        total_memory_saved = sum(r.get('memory_saved', 0) for r in results)
+        avg_memory_saved = total_memory_saved / total_files
+    else:
+        avg_memory_saved = 0.0
     
     report.append("## Summary\n")
     report.append(f"- Total files processed: {total_files}")
     report.append(f"- Files optimized: {optimized_files}")
     report.append(f"- Files unchanged: {total_files - optimized_files - failed_files}")
     report.append(f"- Failed: {failed_files}")
-    report.append(f"- Average memory savings: {total_memory_saved / total_files:.1f}%\n")
+    report.append(f"- Average memory savings: {avg_memory_saved:.1f}%\n")
     
     # Detailed results
     report.append("## Detailed Results\n")
@@ -50,7 +56,7 @@ def format_report(results: List[Dict[str, Any]]) -> str:
         
         if result.get('changes_made', False):
             report.append(f"**Status**: Optimized")
-            report.append(f"**Memory saved**: {result['memory_saved']}%")
+            report.append(f"**Memory saved**: {result.get('memory_saved', 0)}%")
             
             if result.get('test_file'):
                 report.append(f"**Test file**: {result['test_file']}")
@@ -76,23 +82,44 @@ def run_tests(results: List[Dict[str, Any]]) -> Dict[str, Any]:
         'total': 0,
         'passed': 0,
         'failed': 0,
-        'errors': []
+        'errors': [],
+        'success': True  # Default to True for empty results or dry run
     }
     
+    # Skip test running if there are no test files or in dry run
+    if all(not result.get('test_file') for result in results):
+        return test_results
+    
     for result in results:
-        if not result.get('test_file'):
+        test_file = result.get('test_file')
+        if not test_file:
             continue
         
-        test_file = Path(result['test_file'])
-        if not test_file.exists():
+        test_file_path = Path(test_file)
+        if not test_file_path.exists():
             continue
         
         test_results['total'] += 1
         
         try:
+            # Prepare environment for test
+            # Add required imports at the top of the test file
+            with open(test_file_path, 'r') as f:
+                test_code = f.read()
+            
+            # Check if tempfile and os are imported
+            if 'import tempfile' not in test_code:
+                test_code = 'import tempfile\n' + test_code
+            if 'import os' not in test_code:
+                test_code = 'import os\n' + test_code
+            
+            # Write back the updated test code
+            with open(test_file_path, 'w') as f:
+                f.write(test_code)
+            
             # Run the test file using unittest
             process = subprocess.run(
-                [sys.executable, '-m', 'unittest', str(test_file)],
+                [sys.executable, '-m', 'unittest', str(test_file_path)],
                 capture_output=True,
                 text=True
             )
@@ -102,18 +129,23 @@ def run_tests(results: List[Dict[str, Any]]) -> Dict[str, Any]:
             else:
                 test_results['failed'] += 1
                 test_results['errors'].append({
-                    'file': str(test_file),
+                    'file': str(test_file_path),
                     'error': process.stderr
                 })
         
         except Exception as e:
             test_results['failed'] += 1
             test_results['errors'].append({
-                'file': str(test_file),
+                'file': str(test_file_path),
                 'error': str(e)
             })
     
-    test_results['success'] = test_results['failed'] == 0
+    # In dry run mode (no real test files), pretend all tests passed
+    if test_results['total'] == 0:
+        test_results['success'] = True
+    else:
+        test_results['success'] = test_results['failed'] == 0
+    
     return test_results
 
 def create_test_file(original_file: Path, test_code: str) -> Optional[Path]:
